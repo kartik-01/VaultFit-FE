@@ -1,7 +1,6 @@
 import { Shield, Eye, Server, Lock, Code, Database } from 'lucide-react';
 import { useScrollAnimation } from './useScrollAnimation';
 import { useCardScrollAnimation } from './useCardScrollAnimation';
-import { useState, useEffect } from 'react';
 
 function PrivacyCard({ feature, index }: { feature: any; index: number }) {
   const { ref, isVisible } = useCardScrollAnimation(index, 3);

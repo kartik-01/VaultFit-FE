@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-export function useCardScrollAnimation(index: number, totalCards: number) {
+export function useCardScrollAnimation(index: number, _totalCards: number) {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const hasTriggered = useRef(false);

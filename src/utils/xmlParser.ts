@@ -34,7 +34,7 @@ const parser = new XMLParser({
   attributeNamePrefix: '@_',
   parseAttributeValue: true,
   trimValues: true,
-  parseTrueNumberOnly: true,
+  parseTagValue: true,
 });
 
 /**
@@ -159,7 +159,7 @@ export function parseHealthXML(xmlString: string): ParsedHealthData {
 
   workouts.forEach((workout: any) => {
     const startDate = workout['@_startDate'];
-    const endDate = workout['@_endDate'];
+    const _endDate = workout['@_endDate'];
     const type = workout['@_workoutActivityType'] || 'Unknown';
     const duration = parseFloat(workout['@_duration'] || '0');
     const calories = parseFloat(workout['@_totalEnergyBurned'] || '0');

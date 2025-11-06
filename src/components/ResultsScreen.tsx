@@ -5,8 +5,6 @@ import {
   Flame,
   Moon,
   Activity,
-  TrendingUp,
-  Calendar,
   Clock,
   Award,
   Zap,
@@ -136,13 +134,13 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
     }
 
     // Calculate summary metrics
-    const totalSteps = healthData.steps.reduce((sum, item) => sum + item.value, 0);
+    const totalSteps = healthData.steps.reduce((sum: number, item: { value: number }) => sum + item.value, 0);
     const avgHeartRate = healthData.heartRate.length > 0
-      ? Math.round(healthData.heartRate.reduce((sum, item) => sum + item.value, 0) / healthData.heartRate.length)
+      ? Math.round(healthData.heartRate.reduce((sum: number, item: { value: number }) => sum + item.value, 0) / healthData.heartRate.length)
       : 0;
-    const totalCalories = healthData.activeEnergy.reduce((sum, item) => sum + item.value, 0);
+    const totalCalories = healthData.activeEnergy.reduce((sum: number, item: { value: number }) => sum + item.value, 0);
     const avgSleep = healthData.sleep.length > 0
-      ? healthData.sleep.reduce((sum, item) => sum + (item.deep + item.light + item.rem), 0) / healthData.sleep.length
+      ? healthData.sleep.reduce((sum: number, item: { deep: number; light: number; rem: number }) => sum + (item.deep + item.light + item.rem), 0) / healthData.sleep.length
       : 0;
 
     const metrics = [
@@ -186,7 +184,7 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
 
     // Transform steps data for chart (last 7 days)
     const last7Steps = healthData.steps.slice(-7);
-    const stepsChartData = last7Steps.map((item, index) => {
+    const stepsChartData = last7Steps.map((item: { date: string; value: number }, index: number) => {
       const date = new Date(item.date);
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       return {
@@ -197,7 +195,7 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
     });
 
     // Transform heart rate data (sample for chart)
-    const heartRateChartData = healthData.heartRate.slice(-7).map((item, index) => {
+    const heartRateChartData = healthData.heartRate.slice(-7).map((item: { date: string; value: number }, _index: number) => {
       const date = new Date(item.date);
       const hour = date.getHours();
       const period = hour < 12 ? `${hour}am` : hour === 12 ? '12pm' : `${hour - 12}pm`;
@@ -210,7 +208,7 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
     // Transform calories data (last 7 days)
     const last7Active = healthData.activeEnergy.slice(-7);
     const last7Resting = healthData.restingEnergy.slice(-7);
-    const caloriesChartData = last7Active.map((item, index) => {
+    const caloriesChartData = last7Active.map((item: { date: string; value: number }, index: number) => {
       const date = new Date(item.date);
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const resting = last7Resting[index]?.value || 0;
@@ -223,7 +221,7 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
 
     // Transform sleep data (last 7 days)
     const last7Sleep = healthData.sleep.slice(-7);
-    const sleepChartData = last7Sleep.map((item, index) => {
+    const sleepChartData = last7Sleep.map((item: { date: string; deep: number; light: number; rem: number }, index: number) => {
       const date = new Date(item.date);
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       return {
@@ -235,7 +233,7 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
     });
 
     // Transform workouts (last 3)
-    const recentWorkouts = healthData.workouts.slice(-3).reverse().map((workout) => {
+    const recentWorkouts = healthData.workouts.slice(-3).reverse().map((workout: { type: string; date: string; duration: number; calories: number; distance?: number }) => {
       const date = new Date(workout.date);
       const today = new Date();
       const diffTime = Math.abs(today.getTime() - date.getTime());
@@ -690,7 +688,7 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
               <CardContent>
                 {workouts.length > 0 ? (
                   <div className="space-y-4">
-                    {workouts.map((workout, index) => (
+                    {workouts.map((workout: { type: string; duration: string; calories: number; date: string }, index: number) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-4 rounded-lg glass-card hover:scale-[1.02] transition-transform"

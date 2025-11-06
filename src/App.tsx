@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from './components/ThemeProvider';
 import Header from './components/Header';
@@ -17,11 +17,6 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
-  // Check if user has already accepted disclaimer
-  useEffect(() => {
-    const hasAcceptedDisclaimer = localStorage.getItem('vaultfit_disclaimer_accepted') === 'true';
-    // Don't auto-show disclaimer, only check when needed
-  }, []);
 
   const handleTryDemo = () => {
     // TODO: Integrate with Auth0 for authentication
@@ -102,9 +97,6 @@ export default function App() {
 
         {/* Dashboard Screen - For logged-in users (future) */}
         {currentScreen === 'dashboard' && <Dashboard />}
-
-        {/* E2EE Test Screen */}
-        {currentScreen === 'e2ee-test' && <E2EETest />}
 
         {/* Disclaimer Modal */}
         <DisclaimerModal

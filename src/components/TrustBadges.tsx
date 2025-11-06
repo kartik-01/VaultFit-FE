@@ -1,7 +1,6 @@
 import { Shield, Laptop, Eye, BarChart3, Lock, Zap, Globe, Heart } from 'lucide-react';
 import { useScrollAnimation } from './useScrollAnimation';
 import { useCardScrollAnimation } from './useCardScrollAnimation';
-import { useState, useEffect } from 'react';
 
 function FeatureCard({ badge, index }: { badge: any; index: number }) {
   const { ref, isVisible } = useCardScrollAnimation(index, 8);
