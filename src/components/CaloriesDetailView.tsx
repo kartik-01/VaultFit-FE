@@ -415,9 +415,9 @@ export default function CaloriesDetailView({ activeEnergy, restingEnergy, onBack
                         </div>
                       </div>
                     )}
-                    {timeRange === 'weekly' && (
+                    {timeRange === 'weekly' && processedData && 'currentWeekIndex' in processedData && 'totalWeeks' in processedData && (
                       <Select
-                        value={processedData.currentWeekIndex.toString()}
+                        value={(processedData.currentWeekIndex ?? 0).toString()}
                         onValueChange={(v) => {
                           setSelectedWeekIndex(parseInt(v));
                           setDatePickerOpen(false);
@@ -427,17 +427,21 @@ export default function CaloriesDetailView({ activeEnergy, restingEnergy, onBack
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.from({ length: processedData.totalWeeks }, (_, i) => (
-                            <SelectItem key={i} value={i.toString()}>
-                              {formatWeekLabel(processedData.chartData[i]?.weekLabel || '')}
-                            </SelectItem>
-                          ))}
+                          {Array.from({ length: processedData.totalWeeks ?? 0 }, (_, i) => {
+                            const weekData = processedData.chartData[i];
+                            const weekLabel = weekData && 'weekLabel' in weekData ? weekData.weekLabel : '';
+                            return (
+                              <SelectItem key={i} value={i.toString()}>
+                                {weekLabel ? formatWeekLabel(weekLabel) : `Week ${i + 1}`}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     )}
-                    {timeRange === 'monthly' && (
+                    {timeRange === 'monthly' && processedData && 'currentMonthIndex' in processedData && (
                       <Select
-                        value={processedData.currentMonthIndex.toString()}
+                        value={(processedData.currentMonthIndex ?? 0).toString()}
                         onValueChange={(v) => {
                           setSelectedMonthIndex(parseInt(v));
                           setDatePickerOpen(false);
@@ -447,17 +451,20 @@ export default function CaloriesDetailView({ activeEnergy, restingEnergy, onBack
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {processedData.chartData.map((month, idx) => (
-                            <SelectItem key={idx} value={idx.toString()}>
-                              {month.month}
-                            </SelectItem>
-                          ))}
+                          {processedData.chartData.map((item, idx) => {
+                            const month = 'month' in item ? item.month : '';
+                            return (
+                              <SelectItem key={idx} value={idx.toString()}>
+                                {month}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     )}
-                    {timeRange === 'yearly' && (
+                    {timeRange === 'yearly' && processedData && 'currentYearIndex' in processedData && (
                       <Select
-                        value={processedData.currentYearIndex.toString()}
+                        value={(processedData.currentYearIndex ?? 0).toString()}
                         onValueChange={(v) => {
                           setSelectedYearIndex(parseInt(v));
                           setDatePickerOpen(false);
@@ -467,11 +474,14 @@ export default function CaloriesDetailView({ activeEnergy, restingEnergy, onBack
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {processedData.chartData.map((year, idx) => (
-                            <SelectItem key={idx} value={idx.toString()}>
-                              {year.year}
-                            </SelectItem>
-                          ))}
+                          {processedData.chartData.map((item, idx) => {
+                            const year = 'year' in item ? item.year : '';
+                            return (
+                              <SelectItem key={idx} value={idx.toString()}>
+                                {year}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     )}
@@ -519,7 +529,7 @@ export default function CaloriesDetailView({ activeEnergy, restingEnergy, onBack
                   <CardContent className="p-4">
                     <p className="text-xs text-muted-foreground mb-1">Active</p>
                     <p className="text-2xl font-bold text-foreground">
-                      {Math.round(processedData.stats.active).toLocaleString()} cal
+                      {Math.round((processedData.stats.active ?? 0)).toLocaleString()} cal
                     </p>
                   </CardContent>
                 </Card>
@@ -527,7 +537,7 @@ export default function CaloriesDetailView({ activeEnergy, restingEnergy, onBack
                   <CardContent className="p-4">
                     <p className="text-xs text-muted-foreground mb-1">Resting</p>
                     <p className="text-2xl font-bold text-foreground">
-                      {Math.round(processedData.stats.resting).toLocaleString()} cal
+                      {Math.round((processedData.stats.resting ?? 0)).toLocaleString()} cal
                     </p>
                   </CardContent>
                 </Card>

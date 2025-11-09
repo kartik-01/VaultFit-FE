@@ -319,9 +319,9 @@ export default function StepsDetailView({ stepsData, onBack }: StepsDetailViewPr
         personalBest: sortedData.length > 0 ? Math.max(...sortedData.map(item => item.value)) : 0,
       },
       insights: {
-        mostActiveDay: mostActiveDay[0],
+        mostActiveDay: String(mostActiveDay[0]),
         goalAchievementRate,
-        recommendation: generateRecommendation(sortedData, goal, mostActiveDay[0]),
+        recommendation: generateRecommendation(sortedData, goal, String(mostActiveDay[0])),
       },
     };
   }, [stepsData]);
@@ -649,24 +649,24 @@ export default function StepsDetailView({ stepsData, onBack }: StepsDetailViewPr
                 variant="outline"
                 size="icon"
                 onClick={() => {
-                  if (timeRange === 'daily' && processedData.canGoNext) {
+                  if (timeRange === 'daily' && processedData.canGoNext && 'totalDays' in processedData) {
                     setSelectedDateIndex(prev => {
-                      const maxIndex = processedData.totalDays - 1;
+                      const maxIndex = (processedData.totalDays ?? sortedData.length) - 1;
                       return Math.min(maxIndex, prev + 1);
                     });
-                  } else if (timeRange === 'weekly' && processedData.canGoNext) {
+                  } else if (timeRange === 'weekly' && processedData.canGoNext && 'totalWeeks' in processedData) {
                     setSelectedWeekIndex(prev => {
-                      const maxIndex = processedData.totalWeeks - 1;
+                      const maxIndex = (processedData.totalWeeks ?? 0) - 1;
                       return Math.min(maxIndex, prev + 1);
                     });
-                  } else if (timeRange === 'monthly' && processedData.canGoNext) {
+                  } else if (timeRange === 'monthly' && processedData.canGoNext && 'totalMonths' in processedData) {
                     setSelectedMonthIndex(prev => {
-                      const maxIndex = processedData.totalMonths - 1;
+                      const maxIndex = (processedData.totalMonths ?? 0) - 1;
                       return Math.min(maxIndex, prev + 1);
                     });
-                  } else if (timeRange === 'yearly' && processedData.canGoNext) {
+                  } else if (timeRange === 'yearly' && processedData.canGoNext && 'totalYears' in processedData) {
                     setSelectedYearIndex(prev => {
-                      const maxIndex = processedData.totalYears - 1;
+                      const maxIndex = (processedData.totalYears ?? 0) - 1;
                       return Math.min(maxIndex, prev + 1);
                     });
                   }
@@ -702,13 +702,13 @@ export default function StepsDetailView({ stepsData, onBack }: StepsDetailViewPr
               </p>
             </CardContent>
           </Card>
-          {timeRange === 'daily' && (
+          {timeRange === 'daily' && 'max' in processedData.stats && 'min' in processedData.stats && (
             <>
               <Card className="glass-card border-border">
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Max</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {processedData.stats.max.toLocaleString()}
+                    {(processedData.stats.max ?? 0).toLocaleString()}
                   </p>
                 </CardContent>
               </Card>
@@ -716,19 +716,19 @@ export default function StepsDetailView({ stepsData, onBack }: StepsDetailViewPr
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Min</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {processedData.stats.min.toLocaleString()}
+                    {(processedData.stats.min ?? 0).toLocaleString()}
                   </p>
                 </CardContent>
               </Card>
             </>
           )}
-          {timeRange === 'weekly' && (
+          {timeRange === 'weekly' && 'change' in processedData.stats && 'bestWeek' in processedData.stats && (
             <>
               <Card className="glass-card border-border">
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Change</p>
-                  <p className={`text-2xl font-bold ${parseFloat(String(processedData.stats.change)) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {parseFloat(String(processedData.stats.change)) >= 0 ? '+' : ''}{processedData.stats.change}%
+                  <p className={`text-2xl font-bold ${parseFloat(String(processedData.stats.change ?? '0')) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {parseFloat(String(processedData.stats.change ?? '0')) >= 0 ? '+' : ''}{processedData.stats.change ?? '0'}%
                   </p>
                 </CardContent>
               </Card>
@@ -736,19 +736,19 @@ export default function StepsDetailView({ stepsData, onBack }: StepsDetailViewPr
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Best Week</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {processedData.stats.bestWeek.toLocaleString()}
+                    {(processedData.stats.bestWeek ?? 0).toLocaleString()}
                   </p>
                 </CardContent>
               </Card>
             </>
           )}
-          {timeRange === 'monthly' && (
+          {timeRange === 'monthly' && 'bestDay' in processedData.stats && 'bestDayDate' in processedData.stats && (
             <>
               <Card className="glass-card border-border">
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Best Day</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {processedData.stats.bestDay.toLocaleString()}
+                    {(processedData.stats.bestDay ?? 0).toLocaleString()}
                   </p>
                 </CardContent>
               </Card>
@@ -756,19 +756,19 @@ export default function StepsDetailView({ stepsData, onBack }: StepsDetailViewPr
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Date</p>
                   <p className="text-sm font-semibold text-foreground truncate">
-                    {processedData.stats.bestDayDate}
+                    {processedData.stats.bestDayDate ?? 'N/A'}
                   </p>
                 </CardContent>
               </Card>
             </>
           )}
-          {timeRange === 'yearly' && (
+          {timeRange === 'yearly' && 'bestDay' in processedData.stats && 'bestYear' in processedData.stats && (
             <>
               <Card className="glass-card border-border">
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Best Day</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {processedData.stats.bestDay.toLocaleString()}
+                    {(processedData.stats.bestDay ?? 0).toLocaleString()}
                   </p>
                 </CardContent>
               </Card>
@@ -776,7 +776,7 @@ export default function StepsDetailView({ stepsData, onBack }: StepsDetailViewPr
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Best Year</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {processedData.stats.bestYear.toLocaleString()}
+                    {(processedData.stats.bestYear ?? 0).toLocaleString()}
                   </p>
                 </CardContent>
               </Card>

@@ -404,9 +404,9 @@ export default function HeartRateDetailView({ heartRateData, onBack }: HeartRate
                         </div>
                       </div>
                     )}
-                    {timeRange === 'weekly' && (
+                    {timeRange === 'weekly' && processedData && 'currentWeekIndex' in processedData && 'totalWeeks' in processedData && (
                       <Select
-                        value={processedData.currentWeekIndex.toString()}
+                        value={(processedData.currentWeekIndex ?? 0).toString()}
                         onValueChange={(v) => {
                           setSelectedWeekIndex(parseInt(v));
                           setDatePickerOpen(false);
@@ -416,17 +416,21 @@ export default function HeartRateDetailView({ heartRateData, onBack }: HeartRate
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.from({ length: processedData.totalWeeks }, (_, i) => (
-                            <SelectItem key={i} value={i.toString()}>
-                              {formatWeekLabel(processedData.chartData[i]?.weekLabel || '')}
-                            </SelectItem>
-                          ))}
+                          {Array.from({ length: processedData.totalWeeks ?? 0 }, (_, i) => {
+                            const weekData = processedData.chartData[i];
+                            const weekLabel = weekData && 'weekLabel' in weekData ? weekData.weekLabel : '';
+                            return (
+                              <SelectItem key={i} value={i.toString()}>
+                                {weekLabel ? formatWeekLabel(weekLabel) : `Week ${i + 1}`}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     )}
-                    {timeRange === 'monthly' && (
+                    {timeRange === 'monthly' && processedData && 'currentMonthIndex' in processedData && (
                       <Select
-                        value={processedData.currentMonthIndex.toString()}
+                        value={(processedData.currentMonthIndex ?? 0).toString()}
                         onValueChange={(v) => {
                           setSelectedMonthIndex(parseInt(v));
                           setDatePickerOpen(false);
@@ -436,17 +440,20 @@ export default function HeartRateDetailView({ heartRateData, onBack }: HeartRate
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {processedData.chartData.map((month, idx) => (
-                            <SelectItem key={idx} value={idx.toString()}>
-                              {month.month}
-                            </SelectItem>
-                          ))}
+                          {processedData.chartData.map((item, idx) => {
+                            const month = 'month' in item ? item.month : '';
+                            return (
+                              <SelectItem key={idx} value={idx.toString()}>
+                                {month}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     )}
-                    {timeRange === 'yearly' && (
+                    {timeRange === 'yearly' && processedData && 'currentYearIndex' in processedData && (
                       <Select
-                        value={processedData.currentYearIndex.toString()}
+                        value={(processedData.currentYearIndex ?? 0).toString()}
                         onValueChange={(v) => {
                           setSelectedYearIndex(parseInt(v));
                           setDatePickerOpen(false);
@@ -456,11 +463,14 @@ export default function HeartRateDetailView({ heartRateData, onBack }: HeartRate
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {processedData.chartData.map((year, idx) => (
-                            <SelectItem key={idx} value={idx.toString()}>
-                              {year.year}
-                            </SelectItem>
-                          ))}
+                          {processedData.chartData.map((item, idx) => {
+                            const year = 'year' in item ? item.year : '';
+                            return (
+                              <SelectItem key={idx} value={idx.toString()}>
+                                {year}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     )}
@@ -496,10 +506,10 @@ export default function HeartRateDetailView({ heartRateData, onBack }: HeartRate
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Current</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {Math.round(processedData.stats.current)} bpm
+                    {Math.round(processedData.stats.current ?? 0)} bpm
                   </p>
-                  <p className={`text-xs mt-1 ${getHRZone(processedData.stats.current).color}`}>
-                    {getHRZone(processedData.stats.current).zone}
+                  <p className={`text-xs mt-1 ${getHRZone(processedData.stats.current ?? 0).color}`}>
+                    {getHRZone(processedData.stats.current ?? 0).zone}
                   </p>
                 </CardContent>
               </Card>
@@ -508,7 +518,7 @@ export default function HeartRateDetailView({ heartRateData, onBack }: HeartRate
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Average</p>
                 <p className="text-2xl font-bold text-foreground">
-                  {Math.round(processedData.stats.average)} bpm
+                  {Math.round(processedData.stats.average ?? 0)} bpm
                 </p>
               </CardContent>
             </Card>
@@ -516,7 +526,7 @@ export default function HeartRateDetailView({ heartRateData, onBack }: HeartRate
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Max</p>
                 <p className="text-2xl font-bold text-foreground">
-                  {Math.round(processedData.stats.max)} bpm
+                  {Math.round(processedData.stats.max ?? 0)} bpm
                 </p>
               </CardContent>
             </Card>
@@ -524,7 +534,7 @@ export default function HeartRateDetailView({ heartRateData, onBack }: HeartRate
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Min</p>
                 <p className="text-2xl font-bold text-foreground">
-                  {Math.round(processedData.stats.min)} bpm
+                  {Math.round(processedData.stats.min ?? 0)} bpm
                 </p>
               </CardContent>
             </Card>
