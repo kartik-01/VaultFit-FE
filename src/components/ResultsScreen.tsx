@@ -12,6 +12,7 @@ import {
   Lock,
   Database,
   ArrowRight,
+  ArrowLeft,
   Download,
   RefreshCw,
   User,
@@ -21,6 +22,10 @@ import {
   Check,
   X,
 } from 'lucide-react';
+import StepsDetailView from './StepsDetailView';
+import CaloriesDetailView from './CaloriesDetailView';
+import HeartRateDetailView from './HeartRateDetailView';
+import SleepDetailView from './SleepDetailView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -53,6 +58,7 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
   const [nameInput, setNameInput] = useState('');
   const [healthData, setHealthData] = useState<any>(null);
   const [isDecrypting, setIsDecrypting] = useState(true);
+  const [detailView, setDetailView] = useState<string | null>(null);
   const { getHealthData, encryptedHealthData, setEncryptedHealthData, encryptionKey } = useAppStore();
 
   // Decrypt health data on mount
@@ -298,31 +304,139 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
     );
   }
 
+  // Show detail view if one is selected
+  if (detailView === 'steps') {
+    if (!healthData?.steps || healthData.steps.length === 0) {
+      return (
+        <div className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <Button variant="ghost" onClick={() => setDetailView(null)} className="mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Card className="glass-card">
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground">No steps data available</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <StepsDetailView 
+        stepsData={healthData.steps} 
+        onBack={() => setDetailView(null)} 
+      />
+    );
+  }
+
+  if (detailView === 'calories') {
+    if ((!healthData?.activeEnergy || healthData.activeEnergy.length === 0) && 
+        (!healthData?.restingEnergy || healthData.restingEnergy.length === 0)) {
+      return (
+        <div className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <Button variant="ghost" onClick={() => setDetailView(null)} className="mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Card className="glass-card">
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground">No calories data available</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <CaloriesDetailView 
+        activeEnergy={healthData.activeEnergy || []}
+        restingEnergy={healthData.restingEnergy || []}
+        onBack={() => setDetailView(null)} 
+      />
+    );
+  }
+
+  if (detailView === 'heartRate') {
+    if (!healthData?.heartRate || healthData.heartRate.length === 0) {
+      return (
+        <div className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <Button variant="ghost" onClick={() => setDetailView(null)} className="mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Card className="glass-card">
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground">No heart rate data available</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <HeartRateDetailView 
+        heartRateData={healthData.heartRate} 
+        onBack={() => setDetailView(null)} 
+      />
+    );
+  }
+
+  if (detailView === 'sleep') {
+    if (!healthData?.sleep || healthData.sleep.length === 0) {
+      return (
+        <div className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <Button variant="ghost" onClick={() => setDetailView(null)} className="mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Card className="glass-card">
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground">No sleep data available</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <SleepDetailView 
+        sleepData={healthData.sleep} 
+        onBack={() => setDetailView(null)} 
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-cyan-500/5 to-background pt-20">
       {/* Header */}
       <div className="sticky top-20 z-40 navbar-glass">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl text-foreground">Your Health Data</h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm sm:text-base">
                 <Clock className="w-4 h-4 inline mr-1" />
                 Processed locally • Data never left your device
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
               <Button
                 variant="outline"
                 onClick={onUploadNew}
-                className="glass-card hover:border-cyan-500/50"
+                className="glass-card hover:border-cyan-500/50 flex-1 sm:flex-initial"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Upload New
+                <span className="hidden sm:inline">Upload New</span>
+                <span className="sm:hidden">Upload</span>
               </Button>
               <Button
                 variant="outline"
-                className="glass-card hover:border-cyan-500/50"
+                className="glass-card hover:border-cyan-500/50 flex-1 sm:flex-initial"
                 onClick={async () => {
                   if (healthData) {
                     // Export decrypted data
@@ -340,7 +454,8 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
                 }}
               >
                 <Download className="w-4 h-4 mr-2" />
-                Export JSON
+                <span className="hidden sm:inline">Export JSON</span>
+                <span className="sm:hidden">Export</span>
               </Button>
             </div>
           </div>
@@ -474,28 +589,57 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
         {/* Summary Metrics Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-in-up">
           {summaryMetrics.length > 0 ? (
-            summaryMetrics.map((metric, index) => (
-              <Card
-                key={index}
-                className="glass-card border-border overflow-hidden hover:scale-105 transition-transform"
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${metric.gradient} dark:${metric.darkGradient} flex items-center justify-center`}
-                    >
-                      <metric.icon className="w-6 h-6 text-white dark:text-white/90" />
+            summaryMetrics.map((metric, index) => {
+              const getDetailViewKey = () => {
+                if (metric.title === 'Total Steps') return 'steps';
+                if (metric.title === 'Calories Burned') return 'calories';
+                if (metric.title === 'Avg Heart Rate') return 'heartRate';
+                if (metric.title === 'Avg Sleep') return 'sleep';
+                return null;
+              };
+              
+              const detailViewKey = getDetailViewKey();
+              const isClickable = detailViewKey !== null;
+              
+              return (
+                <Card
+                  key={index}
+                  className={`glass-card border-border overflow-hidden transition-transform ${
+                    isClickable ? 'cursor-pointer hover:scale-105 active:scale-95' : 'hover:scale-105'
+                  }`}
+                  onClick={isClickable ? () => setDetailView(detailViewKey) : undefined}
+                  role={isClickable ? 'button' : undefined}
+                  tabIndex={isClickable ? 0 : undefined}
+                  onKeyDown={isClickable ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setDetailView(detailViewKey);
+                    }
+                  } : undefined}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div
+                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${metric.gradient} dark:${metric.darkGradient} flex items-center justify-center`}
+                      >
+                        <metric.icon className="w-6 h-6 text-white dark:text-white/90" />
+                      </div>
+                      <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-500/70 border-emerald-500/20">
+                        {metric.change}
+                      </Badge>
                     </div>
-                    <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-500/70 border-emerald-500/20">
-                      {metric.change}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">{metric.title}</p>
-                  <p className="text-3xl text-foreground mb-1">{metric.value}</p>
-                  <p className="text-xs text-muted-foreground">{metric.period}</p>
-                </CardContent>
-              </Card>
-            ))
+                    <p className="text-sm text-muted-foreground mb-1">{metric.title}</p>
+                    <p className="text-3xl text-foreground mb-1">{metric.value}</p>
+                    <p className="text-xs text-muted-foreground">{metric.period}</p>
+                    {isClickable && (
+                      <p className="text-xs text-cyan-600 dark:text-cyan-500/70 mt-2 flex items-center gap-1">
+                        Tap to view details
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
           ) : (
             <Card className="glass-card border-border col-span-full">
               <CardContent className="p-6 text-center">
@@ -554,43 +698,45 @@ export default function ResultsScreen({ onSignupClick, onUploadNew }: ResultsScr
 
         {/* Charts Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="glass-card p-1 border-border inline-flex">
-            <TabsTrigger
-              value="overview"
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground"
-            >
-              <Activity className="w-4 h-4 mr-2" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger
-              value="steps"
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground"
-            >
-              <Footprints className="w-4 h-4 mr-2" />
-              Steps
-            </TabsTrigger>
-            <TabsTrigger
-              value="heart"
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground"
-            >
-              <Heart className="w-4 h-4 mr-2" />
-              Heart Rate
-            </TabsTrigger>
-            <TabsTrigger
-              value="calories"
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground"
-            >
-              <Flame className="w-4 h-4 mr-2" />
-              Calories
-            </TabsTrigger>
-            <TabsTrigger
-              value="sleep"
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground"
-            >
-              <Moon className="w-4 h-4 mr-2" />
-              Sleep
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+            <TabsList className="glass-card p-1 border-border inline-flex w-max sm:w-auto">
+              <TabsTrigger
+                value="overview"
+                className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground whitespace-nowrap"
+              >
+                <Activity className="w-4 h-4 mr-2" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger
+                value="steps"
+                className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground whitespace-nowrap"
+              >
+                <Footprints className="w-4 h-4 mr-2" />
+                Steps
+              </TabsTrigger>
+              <TabsTrigger
+                value="heart"
+                className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground whitespace-nowrap"
+              >
+                <Heart className="w-4 h-4 mr-2" />
+                Heart Rate
+              </TabsTrigger>
+              <TabsTrigger
+                value="calories"
+                className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground whitespace-nowrap"
+              >
+                <Flame className="w-4 h-4 mr-2" />
+                Calories
+              </TabsTrigger>
+              <TabsTrigger
+                value="sleep"
+                className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-foreground whitespace-nowrap"
+              >
+                <Moon className="w-4 h-4 mr-2" />
+                Sleep
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
