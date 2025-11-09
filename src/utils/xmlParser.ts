@@ -54,15 +54,28 @@ function safeParseDate(dateString: string | undefined | null): string | null {
     
     // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.warn('Invalid date string:', dateString);
+      // Try parsing as ISO string directly if it's already in that format
+      if (cleaned.match(/^\d{4}-\d{2}-\d{2}/)) {
+        return cleaned.substring(0, 10);
+      }
       return null;
     }
     
     // Convert to ISO string and extract date part
-    const isoString = date.toISOString();
-    return isoString.split('T')[0];
+    // Use UTC methods to avoid timezone issues on mobile
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   } catch (error) {
-    console.warn('Error parsing date:', dateString, error);
+    // Fallback: try to extract date from string if it's in ISO format
+    try {
+      if (dateString.match(/^\d{4}-\d{2}-\d{2}/)) {
+        return dateString.substring(0, 10);
+      }
+    } catch (e) {
+      // Ignore fallback errors
+    }
     return null;
   }
 }
@@ -158,12 +171,23 @@ export function parseHealthXML(xmlString: string): ParsedHealthData {
       : [];
 
   records.forEach((record: any) => {
-    const type = record['@_type'];
-    const startDate = record['@_startDate'];
-    const value = parseFloat(record['@_value'] || '0');
+    // Handle both @_ prefixed attributes and direct attribute access (mobile compatibility)
+    const type = record['@_type'] || record.type;
+    const startDate = record['@_startDate'] || record.startDate;
+    
+    // Handle value parsing more robustly for mobile
+    let value = 0;
+    const valueStr = record['@_value'] || record.value;
+    if (valueStr !== undefined && valueStr !== null && valueStr !== '') {
+      const parsed = parseFloat(String(valueStr));
+      if (!isNaN(parsed)) {
+        value = parsed;
+      }
+    }
+    
     const date = safeParseDate(startDate);
 
-    if (!date) return;
+    if (!date || !type) return;
 
     switch (type) {
       case 'HKQuantityTypeIdentifierStepCount':
@@ -179,8 +203,8 @@ export function parseHealthXML(xmlString: string): ParsedHealthData {
         parsed.restingEnergy.push({ date, value });
         break;
       case 'HKCategoryTypeIdentifierSleepAnalysis':
-        const sleepValue = record['@_value'];
-        const endDate = record['@_endDate'];
+        const sleepValue = record['@_value'] || record.value;
+        const endDate = record['@_endDate'] || record.endDate;
         if (sleepValue && endDate && startDate) {
           const start = safeParseDateObject(startDate);
           const end = safeParseDateObject(endDate);
@@ -217,12 +241,31 @@ export function parseHealthXML(xmlString: string): ParsedHealthData {
       : [];
 
   workouts.forEach((workout: any) => {
-    const startDate = workout['@_startDate'];
-    const _endDate = workout['@_endDate'];
-    const type = workout['@_workoutActivityType'] || 'Unknown';
-    const duration = parseFloat(workout['@_duration'] || '0');
-    const calories = parseFloat(workout['@_totalEnergyBurned'] || '0');
-    const distance = parseFloat(workout['@_totalDistance'] || '0');
+    const startDate = workout['@_startDate'] || workout.startDate;
+    const _endDate = workout['@_endDate'] || workout.endDate;
+    const type = workout['@_workoutActivityType'] || workout.workoutActivityType || 'Unknown';
+    
+    // Handle numeric parsing more robustly
+    let duration = 0;
+    const durationStr = workout['@_duration'] || workout.duration;
+    if (durationStr !== undefined && durationStr !== null && durationStr !== '') {
+      const parsed = parseFloat(String(durationStr));
+      if (!isNaN(parsed)) duration = parsed;
+    }
+    
+    let calories = 0;
+    const caloriesStr = workout['@_totalEnergyBurned'] || workout.totalEnergyBurned;
+    if (caloriesStr !== undefined && caloriesStr !== null && caloriesStr !== '') {
+      const parsed = parseFloat(String(caloriesStr));
+      if (!isNaN(parsed)) calories = parsed;
+    }
+    
+    let distance = 0;
+    const distanceStr = workout['@_totalDistance'] || workout.totalDistance;
+    if (distanceStr !== undefined && distanceStr !== null && distanceStr !== '') {
+      const parsed = parseFloat(String(distanceStr));
+      if (!isNaN(parsed)) distance = parsed;
+    }
 
     if (startDate) {
       const date = safeParseDate(startDate);
