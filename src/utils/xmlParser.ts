@@ -38,6 +38,58 @@ const parser = new XMLParser({
 });
 
 /**
+ * Safely parse a date string and return ISO date string (YYYY-MM-DD)
+ * Handles mobile browser date parsing issues
+ */
+function safeParseDate(dateString: string | undefined | null): string | null {
+  if (!dateString) return null;
+  
+  try {
+    // Clean the date string - remove any whitespace
+    const cleaned = dateString.trim();
+    if (!cleaned) return null;
+    
+    // Create date object
+    const date = new Date(cleaned);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date string:', dateString);
+      return null;
+    }
+    
+    // Convert to ISO string and extract date part
+    const isoString = date.toISOString();
+    return isoString.split('T')[0];
+  } catch (error) {
+    console.warn('Error parsing date:', dateString, error);
+    return null;
+  }
+}
+
+/**
+ * Safely parse a date string and return Date object
+ */
+function safeParseDateObject(dateString: string | undefined | null): Date | null {
+  if (!dateString) return null;
+  
+  try {
+    const cleaned = dateString.trim();
+    if (!cleaned) return null;
+    
+    const date = new Date(cleaned);
+    
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    
+    return date;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
  * Parse Apple Health XML file
  */
 export function parseHealthXML(xmlString: string): ParsedHealthData {
@@ -64,12 +116,14 @@ export function parseHealthXML(xmlString: string): ParsedHealthData {
 
     let age: number | undefined;
     if (dateOfBirth) {
-      const birthDate = new Date(dateOfBirth);
-      const today = new Date();
-      age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
+      const birthDate = safeParseDateObject(dateOfBirth);
+      if (birthDate) {
+        const today = new Date();
+        age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
       }
     }
 
@@ -107,7 +161,7 @@ export function parseHealthXML(xmlString: string): ParsedHealthData {
     const type = record['@_type'];
     const startDate = record['@_startDate'];
     const value = parseFloat(record['@_value'] || '0');
-    const date = startDate ? new Date(startDate).toISOString().split('T')[0] : null;
+    const date = safeParseDate(startDate);
 
     if (!date) return;
 
@@ -127,23 +181,28 @@ export function parseHealthXML(xmlString: string): ParsedHealthData {
       case 'HKCategoryTypeIdentifierSleepAnalysis':
         const sleepValue = record['@_value'];
         const endDate = record['@_endDate'];
-        if (sleepValue && endDate) {
-          const start = new Date(startDate);
-          const end = new Date(endDate);
-          const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60); // hours
+        if (sleepValue && endDate && startDate) {
+          const start = safeParseDateObject(startDate);
+          const end = safeParseDateObject(endDate);
           
-          const existingSleep = parsed.sleep.find(s => s.date === date);
-          if (existingSleep) {
-            if (sleepValue.includes('Deep')) existingSleep.deep += duration;
-            else if (sleepValue.includes('Core')) existingSleep.light += duration;
-            else if (sleepValue.includes('REM')) existingSleep.rem += duration;
-          } else {
-            parsed.sleep.push({
-              date,
-              deep: sleepValue.includes('Deep') ? duration : 0,
-              light: sleepValue.includes('Core') ? duration : 0,
-              rem: sleepValue.includes('REM') ? duration : 0,
-            });
+          if (start && end) {
+            const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60); // hours
+            
+            if (duration > 0 && duration < 24) { // Sanity check: sleep duration should be reasonable
+              const existingSleep = parsed.sleep.find(s => s.date === date);
+              if (existingSleep) {
+                if (sleepValue.includes('Deep')) existingSleep.deep += duration;
+                else if (sleepValue.includes('Core')) existingSleep.light += duration;
+                else if (sleepValue.includes('REM')) existingSleep.rem += duration;
+              } else {
+                parsed.sleep.push({
+                  date,
+                  deep: sleepValue.includes('Deep') ? duration : 0,
+                  light: sleepValue.includes('Core') ? duration : 0,
+                  rem: sleepValue.includes('REM') ? duration : 0,
+                });
+              }
+            }
           }
         }
         break;
@@ -166,14 +225,16 @@ export function parseHealthXML(xmlString: string): ParsedHealthData {
     const distance = parseFloat(workout['@_totalDistance'] || '0');
 
     if (startDate) {
-      const date = new Date(startDate).toISOString().split('T')[0];
-      parsed.workouts.push({
-        type: type.replace('HKWorkoutActivityType', ''),
-        date,
-        duration,
-        calories,
-        distance: distance || undefined,
-      });
+      const date = safeParseDate(startDate);
+      if (date) {
+        parsed.workouts.push({
+          type: type.replace('HKWorkoutActivityType', ''),
+          date,
+          duration,
+          calories,
+          distance: distance || undefined,
+        });
+      }
     }
   });
 
