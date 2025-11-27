@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VaultFit — Authentication</title>
+    <style>
+      body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#041229;color:#fff}
+      .card{max-width:640px;padding:28px;border-radius:12px;background:rgba(255,255,255,0.03);text-align:center}
+      a.button{display:inline-block;margin-top:18px;padding:12px 18px;background:#2dd4bf;color:#042; border-radius:10px;text-decoration:none;font-weight:700}
+      p.small{color:rgba(255,255,255,0.75)}
+      code{background:rgba(255,255,255,0.04);padding:6px;border-radius:6px}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>You're verified</h1>
+      <p class="small">If you opened the magic link on a different device, tap the button below on this device to open the app and finish signing in.</p>
+      <p class="small">If your device opened this page automatically after clicking the email link, tap the button to continue.</p>
+
+      <a id="openApp" class="button" href="#">Open VaultFit</a>
+
+      <p class="small" style="margin-top:12px">If the app doesn't open, copy this link and open it on your phone: <code id="deepLinkText"></code></p>
+    </div>
+
+    <script>
+      (function(){
+        const fragment = window.location.hash || '';
+        const scheme = 'vaultfit';
+        const deep = scheme + '://auth/callback' + fragment;
+
+        const openBtn = document.getElementById('openApp');
+        openBtn.setAttribute('href', deep);
+
+        const deepText = document.getElementById('deepLinkText');
+        deepText.textContent = deep;
+
+        // Attempt to open the app automatically
+        setTimeout(function(){
+          var a = document.createElement('a');
+          a.href = deep;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function(){ document.body.removeChild(a); }, 1000);
+        }, 700);
+      })();
+    </script>
+  </body>
+</html>
