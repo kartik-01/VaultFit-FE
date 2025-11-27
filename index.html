@@ -9,6 +9,24 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // If Supabase redirected to the site root and included auth tokens in
+      // the URL fragment (e.g. #access_token=...), forward the fragment to
+      // the dedicated callback page so the mobile app can receive it.
+      (function() {
+        try {
+          var hash = window.location.hash || '';
+          if (hash.indexOf('access_token=') !== -1 || hash.indexOf('type=magiclink') !== -1) {
+            // Preserve fragment and navigate to /auth-callback
+            var target = '/auth-callback' + hash;
+            // Use replace to avoid creating extra history entries
+            window.location.replace(target);
+          }
+        } catch (e) {
+          // noop
+        }
+      })();
+    </script>
   </body>
 </html>
 
